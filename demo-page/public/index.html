@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <title>PrimeStart UAE — AI Voice Assistant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    :root {
+      --background: #f7f9fb;
+      --surface-low: #f1f4f6;
+      --surface-lowest: #ffffff;
+      --surface-highest: #e4e8eb;
+      --primary: #0055d7;
+      --primary-dim: #004abe;
+      --primary-container: #abbfff;
+      --primary-fixed: #abbfff;
+      --secondary: #684cb6;
+      --secondary-container: #e8ddff;
+      --tertiary-fixed: #8abbff;
+      --on-surface: #2d3337;
+      --on-surface-variant: #5a6066;
+      --on-primary: #f9f8ff;
+      --outline-variant: #acb3b7;
+      --accent-green: #22c55e;
+      --accent-red: #ef4444;
+      --safe-top: env(safe-area-inset-top, 20px);
+      --safe-bottom: env(safe-area-inset-bottom, 20px);
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--background);
+      color: var(--on-surface);
+      min-height: 100dvh;
+      overflow-x: hidden;
+      overflow-y: auto;
+      width: 100%;
+    }
+
+    /* === Ethereal Background === */
+    .bg-ethereal { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+    .bg-blob { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.35; animation: float-blob 20s ease-in-out infinite; }
+    .bg-blob-1 { width: 300px; height: 300px; background: linear-gradient(135deg, var(--primary-container), var(--tertiary-fixed)); top: -80px; right: -60px; }
+    .bg-blob-2 { width: 280px; height: 280px; background: linear-gradient(135deg, var(--secondary-container), var(--primary-fixed)); bottom: -60px; left: -60px; animation-delay: -7s; }
+    .bg-blob-3 { width: 160px; height: 160px; background: var(--secondary-container); top: 45%; left: 50%; transform: translateX(-50%); animation-delay: -14s; opacity: 0.2; }
+    @keyframes float-blob {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(20px, -15px) scale(1.04); }
+      66% { transform: translate(-15px, 10px) scale(0.96); }
+    }
+
+    /* === App Container === */
+    .app-container {
+      display: flex;
+      flex-direction: column;
+      min-height: 100dvh;
+      padding-top: var(--safe-top);
+      padding-bottom: var(--safe-bottom);
+      position: relative;
+      z-index: 1;
+    }
+
+    /* === Header === */
+    .header {
+      padding: 16px 20px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      z-index: 10;
+      flex-shrink: 0;
+    }
+    .header-left { display: flex; align-items: center; gap: 10px; }
+    .header-avatar {
+      width: 36px; height: 36px; border-radius: 50%; overflow: hidden;
+      background: linear-gradient(135deg, var(--primary-container), var(--secondary-container));
+    }
+    .header-avatar img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+    .header-info h1 { font-family: 'Manrope', sans-serif; font-size: 15px; font-weight: 700; color: var(--on-surface); letter-spacing: -0.3px; }
+    .header-info p { font-size: 11px; color: var(--on-surface-variant); }
+    .header-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: rgba(34, 197, 94, 0.08); border-radius: 100px;
+      padding: 5px 10px; font-size: 10px; font-weight: 600; color: var(--accent-green);
+    }
+    .header-badge .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent-green); animation: pulse-dot 2s ease-in-out infinite; }
+    @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+    /* === Main Content === */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: clamp(14px, 4vh, 42px) 20px 10px;
+      position: relative;
+    }
+
+    /* === The Orb === */
+    .orb-container { position: relative; margin-bottom: 20px; }
+    .orb {
+      width: 150px; height: 150px; border-radius: 50%; position: relative;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .orb-glass {
+      width: 100%; height: 100%; border-radius: 50%;
+      background: linear-gradient(145deg, rgba(171,191,255,0.5), rgba(104,76,182,0.3), rgba(138,187,255,0.4));
+      backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
+      box-shadow: 0 8px 60px rgba(0,85,215,0.1), 0 2px 20px rgba(104,76,182,0.08),
+        inset 0 1px 0 rgba(255,255,255,0.6), inset 0 -2px 10px rgba(104,76,182,0.1);
+      display: flex; align-items: center; justify-content: center;
+      position: relative; overflow: hidden;
+      transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .orb-glass::before {
+      content: ''; position: absolute; top: 10%; left: 15%; width: 40%; height: 30%;
+      background: linear-gradient(180deg, rgba(255,255,255,0.42), transparent);
+      border-radius: 50%; filter: blur(8px);
+    }
+    .orb-inner-gradient {
+      position: absolute; inset: 0; border-radius: 50%;
+      background: conic-gradient(from 180deg, rgba(138,187,255,0.3), rgba(171,191,255,0.2), rgba(232,221,255,0.3), rgba(104,76,182,0.2), rgba(138,187,255,0.3));
+      animation: orb-rotate 8s linear infinite; opacity: 0.24;
+    }
+    @keyframes orb-rotate { to { transform: rotate(360deg); } }
+    .orb-photo {
+      width: 100%; height: 100%; border-radius: 50%; object-fit: cover;
+      object-position: center top; position: absolute; inset: 0; z-index: 2; border: none;
+    }
+    .orb-pulse {
+      display: none; position: absolute; inset: -12px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,85,215,0.06), transparent 70%);
+      animation: orb-pulse-ring 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+    .orb-pulse:nth-child(2) { animation-delay: 0.6s; inset: -24px; }
+    .orb-pulse:nth-child(3) { animation-delay: 1.2s; inset: -36px; }
+    @keyframes orb-pulse-ring { 0% { transform: scale(0.9); opacity: 0.7; } 100% { transform: scale(1.15); opacity: 0; } }
+    .orb.active .orb-glass {
+      background: linear-gradient(145deg, rgba(34,197,94,0.25), rgba(171,191,255,0.4), rgba(138,187,255,0.35));
+      box-shadow: 0 8px 80px rgba(34,197,94,0.15), 0 4px 30px rgba(0,85,215,0.1),
+        inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -2px 10px rgba(34,197,94,0.1);
+    }
+    .orb.active .orb-pulse { display: block; }
+    .orb.active .orb-inner-gradient { animation-duration: 3s; opacity: 0.18; }
+
+    /* === Sound Wave === */
+    .sound-wave { display: none; align-items: center; justify-content: center; gap: 4px; height: 32px; margin-bottom: 12px; }
+    .sound-wave.active { display: flex; }
+    .sound-bar {
+      width: 3px; height: 6px; background: linear-gradient(180deg, var(--primary), var(--secondary));
+      border-radius: 100px; animation: sound-wave-anim 1.2s ease-in-out infinite;
+    }
+    .sound-bar:nth-child(1) { animation-delay: 0s; }
+    .sound-bar:nth-child(2) { animation-delay: 0.1s; }
+    .sound-bar:nth-child(3) { animation-delay: 0.2s; }
+    .sound-bar:nth-child(4) { animation-delay: 0.3s; }
+    .sound-bar:nth-child(5) { animation-delay: 0.4s; }
+    .sound-bar:nth-child(6) { animation-delay: 0.3s; }
+    .sound-bar:nth-child(7) { animation-delay: 0.2s; }
+    @keyframes sound-wave-anim { 0%, 100% { height: 6px; opacity: 0.35; } 50% { height: 26px; opacity: 1; } }
+
+    /* === Status Area === */
+    .status-area { text-align: center; margin-bottom: 16px; min-height: 50px; }
+    .status-title {
+      font-family: 'Manrope', sans-serif; font-size: 24px; font-weight: 700;
+      letter-spacing: -0.5px; color: var(--on-surface); margin-bottom: 6px;
+    }
+    .status-subtitle { font-size: 14px; color: var(--on-surface-variant); line-height: 1.5; }
+    .listening-label {
+      display: none; font-size: 13px; font-weight: 500; color: var(--primary);
+      margin-top: 4px; animation: listening-fade 2s ease-in-out infinite;
+    }
+    .listening-label.active { display: block; }
+    @keyframes listening-fade { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .call-timer {
+      font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500;
+      color: var(--on-surface-variant); font-variant-numeric: tabular-nums;
+      margin-top: 6px; background: var(--surface-low); padding: 3px 14px;
+      border-radius: 100px; display: none;
+    }
+    .call-timer.active { display: inline-block; }
+    .connecting-spinner {
+      display: none; width: 24px; height: 24px; border: 2.5px solid var(--surface-highest);
+      border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite;
+      margin: 0 auto 12px;
+    }
+    .connecting-spinner.active { display: block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* === Call Section (ABOVE features) === */
+    .call-section {
+      padding: 0 24px 12px; display: flex; flex-direction: column;
+      align-items: center; gap: 8px;
+      margin-top: -2px;
+    }
+    .call-btn {
+      width: 64px; height: 64px; border-radius: 9999px; border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); outline: none; appearance: none; -webkit-appearance: none;
+    }
+    .call-btn-start {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dim));
+      box-shadow: 0 4px 24px rgba(0,85,215,0.25), 0 1px 4px rgba(0,85,215,0.15), inset 0 1px 0 rgba(255,255,255,0.2);
+    }
+    .call-btn-start:active { transform: scale(0.92); }
+    .call-btn-end {
+      background: linear-gradient(135deg, var(--accent-red), #dc2626);
+      box-shadow: 0 4px 24px rgba(239,68,68,0.25), inset 0 1px 0 rgba(255,255,255,0.2);
+    }
+    .call-btn-end:active { transform: scale(0.92); }
+    .call-btn svg { width: 24px; height: 24px; fill: white; }
+    .call-btn-label { font-size: 12px; color: var(--on-surface-variant); font-weight: 500; }
+
+    /* === Features Grid (BELOW call button) === */
+    .features {
+      padding: 0 20px 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    }
+    .feature-card {
+      background: rgba(255,255,255,0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-radius: 18px; padding: 14px; box-shadow: 0 2px 40px rgba(45,51,55,0.04);
+    }
+    .feature-card:active { transform: scale(0.97); }
+    .feature-icon-wrap {
+      width: 32px; height: 32px; border-radius: 10px; display: flex;
+      align-items: center; justify-content: center; margin-bottom: 8px; font-size: 16px;
+    }
+    .feature-card:nth-child(1) .feature-icon-wrap { background: rgba(171,191,255,0.3); }
+    .feature-card:nth-child(2) .feature-icon-wrap { background: rgba(232,221,255,0.4); }
+    .feature-card:nth-child(3) .feature-icon-wrap { background: rgba(138,187,255,0.3); }
+    .feature-card:nth-child(4) .feature-icon-wrap { background: rgba(171,191,255,0.3); }
+    .feature-title { font-family: 'Manrope', sans-serif; font-size: 12px; font-weight: 700; color: var(--on-surface); margin-bottom: 2px; }
+    .feature-desc { font-size: 10px; color: var(--on-surface-variant); line-height: 1.4; }
+
+    /* === CRM Capture (after call) === */
+    .lead-summary {
+      display: none; padding: 0 20px 16px; width: 100%;
+      animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .lead-summary.active { display: block; }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .lead-card {
+      background: rgba(255,255,255,0.85); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+      border-radius: 24px; padding: 20px; box-shadow: 0 4px 40px rgba(45,51,55,0.06);
+    }
+    .lead-card-header {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
+    }
+    .lead-card-title {
+      font-family: 'Manrope', sans-serif; font-size: 16px; font-weight: 700;
+      color: var(--on-surface); display: flex; align-items: center; gap: 8px;
+    }
+    .lead-note {
+      font-size: 12px;
+      color: var(--on-surface-variant);
+      margin-bottom: 14px;
+    }
+    .crm-form {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+    .crm-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .crm-label {
+      font-size: 11px;
+      color: var(--outline-variant);
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+    .crm-input {
+      width: 100%;
+      border: 1px solid rgba(172,179,183,0.25);
+      border-radius: 12px;
+      padding: 11px 12px;
+      font-size: 14px;
+      color: var(--on-surface);
+      background: var(--surface-lowest);
+      outline: none;
+    }
+    .crm-input:focus {
+      border-color: rgba(0,85,215,0.45);
+      box-shadow: 0 0 0 3px rgba(0,85,215,0.08);
+    }
+    .lead-actions { display: flex; gap: 8px; margin-top: 12px; }
+    .lead-action-btn {
+      flex: 1; padding: 12px; border-radius: 14px; border: none; cursor: pointer;
+      font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .lead-action-btn:active { transform: scale(0.97); }
+    .lead-action-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dim));
+      color: white; box-shadow: 0 2px 12px rgba(0,85,215,0.2);
+    }
+    .lead-action-secondary {
+      background: var(--surface-low); color: var(--on-surface);
+    }
+    .crm-sheet {
+      margin-top: 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(172,179,183,0.2);
+      background: rgba(255,255,255,0.9);
+      overflow: hidden;
+    }
+    .crm-sheet-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--on-surface);
+      padding: 10px 12px;
+      background: var(--surface-low);
+    }
+    .crm-sheet-wrap {
+      overflow-x: auto;
+    }
+    .crm-sheet-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 460px;
+    }
+    .crm-sheet-table th,
+    .crm-sheet-table td {
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(172,179,183,0.18);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .crm-sheet-table th {
+      font-size: 11px;
+      color: var(--outline-variant);
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+    .crm-empty {
+      padding: 12px;
+      font-size: 12px;
+      color: var(--outline-variant);
+    }
+
+    /* === Bottom Bar === */
+    .bottom-bar { padding: 10px 24px; text-align: center; flex-shrink: 0; }
+    .bottom-bar p { font-size: 10px; color: var(--outline-variant); letter-spacing: 0.2px; }
+
+    /* === Toast === */
+    .toast {
+      position: fixed; top: calc(var(--safe-top) + 12px); left: 50%;
+      transform: translateX(-50%) translateY(-100px);
+      background: rgba(255,255,255,0.9); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-radius: 14px; padding: 10px 18px; font-size: 13px; font-weight: 500;
+      color: var(--on-surface); z-index: 100; box-shadow: 0 4px 40px rgba(45,51,55,0.08);
+      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); max-width: 90%; text-align: center;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+    .toast.error { color: var(--accent-red); }
+    .toast.success { color: var(--accent-green); }
+
+    /* === Responsive === */
+    @media (min-width: 500px) {
+      .app-container { max-width: 430px; margin: 0 auto; background: var(--background); box-shadow: 0 0 80px rgba(0,85,215,0.05); }
+      body::before { content: ''; position: fixed; inset: 0; background: linear-gradient(135deg, #eef2f7, #e8edf5); z-index: -1; }
+    }
+    @media (max-height: 700px) {
+      .orb { width: 120px; height: 120px; }
+      .orb-container { margin-bottom: 14px; }
+      .status-title { font-size: 20px; }
+      .status-area { margin-bottom: 10px; }
+      .features { gap: 8px; }
+      .feature-card { padding: 10px; }
+      .call-section { padding-bottom: 8px; }
+    }
+    @media (max-height: 600px) {
+      .features { display: none; }
+      .orb { width: 100px; height: 100px; }
+      .header { padding: 8px 16px 6px; }
+      .orb-container { margin-bottom: 10px; }
+      .status-title { font-size: 18px; }
+    }
+    @media (max-width: 420px) {
+      .header { padding: 12px 14px 8px; }
+      .main-content { padding-left: 14px; padding-right: 14px; }
+      .features { padding-left: 14px; padding-right: 14px; }
+      .lead-summary { padding-left: 14px; padding-right: 14px; }
+      .call-section { padding-left: 14px; padding-right: 14px; }
+      .lead-card { padding: 16px; border-radius: 18px; }
+      .status-title { font-size: 20px; }
+      .status-subtitle { font-size: 13px; }
+    }
+    @media (max-height: 500px) {
+      .orb { width: 80px; height: 80px; }
+      .call-btn { width: 52px; height: 52px; }
+      .sound-wave { height: 20px; margin-bottom: 8px; }
+    }
+    @media (min-height: 900px) {
+      .orb { width: 180px; height: 180px; }
+      .orb-container { margin-bottom: 32px; }
+      .status-title { font-size: 28px; }
+      .status-area { margin-bottom: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-ethereal">
+    <div class="bg-blob bg-blob-1"></div>
+    <div class="bg-blob bg-blob-2"></div>
+    <div class="bg-blob bg-blob-3"></div>
+  </div>
+
+  <div class="app-container">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-left">
+        <div class="header-avatar"><img src="/aisha-profile.jpg" alt="Aisha" /></div>
+        <div class="header-info">
+          <h1>PrimeStart UAE</h1>
+          <p>Business Setup Consultancy</p>
+        </div>
+      </div>
+      <div class="header-badge">
+        <span class="dot"></span>
+        <span>Online</span>
+      </div>
+    </div>
+
+    <!-- Main -->
+    <div class="main-content">
+      <div class="orb-container">
+        <div class="orb" id="orb">
+          <div class="orb-pulse"></div>
+          <div class="orb-pulse"></div>
+          <div class="orb-pulse"></div>
+          <div class="orb-glass">
+            <div class="orb-inner-gradient"></div>
+            <img src="/aisha dp.jpg" alt="Aisha" class="orb-photo" />
+          </div>
+        </div>
+      </div>
+
+      <div class="sound-wave" id="soundWave">
+        <div class="sound-bar"></div><div class="sound-bar"></div><div class="sound-bar"></div>
+        <div class="sound-bar"></div><div class="sound-bar"></div><div class="sound-bar"></div>
+        <div class="sound-bar"></div>
+      </div>
+
+      <div class="status-area">
+        <div class="connecting-spinner" id="spinner"></div>
+        <div class="status-title" id="statusTitle">Hello! Meet Aisha</div>
+        <div class="status-subtitle" id="statusSubtitle">Your AI business setup advisor.<br>Ask anything about company formation in the UAE.</div>
+        <div class="listening-label" id="listeningLabel">listening...</div>
+        <div class="call-timer" id="callTimer">00:00</div>
+      </div>
+    </div>
+
+    <!-- Call Button (ABOVE features) -->
+    <div class="call-section" id="callSection">
+      <button class="call-btn call-btn-start" id="callBtn" onclick="handleCall()">
+        <svg viewBox="0 0 24 24"><path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 0 0-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/></svg>
+      </button>
+      <div class="call-btn-label" id="callLabel">Tap to talk with Aisha</div>
+    </div>
+
+    <!-- Features (BELOW call button) -->
+    <div class="features" id="featuresGrid">
+      <div class="feature-card">
+        <div class="feature-icon-wrap">🏢</div>
+        <div class="feature-title">Company Setup</div>
+        <div class="feature-desc">Mainland, Free Zone & Offshore</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon-wrap">📋</div>
+        <div class="feature-title">Trade License</div>
+        <div class="feature-desc">Commercial, Professional & Industrial</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon-wrap">🛂</div>
+        <div class="feature-title">Visa Services</div>
+        <div class="feature-desc">Investor, Employee & Golden Visa</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon-wrap">🏦</div>
+        <div class="feature-title">Bank Account</div>
+        <div class="feature-desc">Account opening assistance</div>
+      </div>
+    </div>
+
+    <!-- Lead Summary (shown after call ends) -->
+    <div class="lead-summary" id="leadSummary">
+      <div class="lead-card">
+        <div class="lead-card-header">
+          <div class="lead-card-title">📋 Customer Data (CRM)</div>
+        </div>
+        <div class="lead-note">After each call, confirm customer details and save them into the CRM sheet.</div>
+        <div class="crm-form" id="crmForm">
+          <div class="crm-field">
+            <label class="crm-label" for="crmName">Full Name</label>
+            <input class="crm-input" id="crmName" type="text" placeholder="Enter customer name" />
+          </div>
+          <div class="crm-field">
+            <label class="crm-label" for="crmMobile">Mobile Number</label>
+            <input class="crm-input" id="crmMobile" type="tel" placeholder="Enter mobile number" />
+          </div>
+          <div class="crm-field">
+            <label class="crm-label" for="crmEmail">Email ID</label>
+            <input class="crm-input" id="crmEmail" type="email" placeholder="Enter email address" />
+          </div>
+        </div>
+        <div class="lead-actions">
+          <button class="lead-action-btn lead-action-primary" onclick="saveLeadRecord()">💾 Save Lead</button>
+          <button class="lead-action-btn lead-action-secondary" onclick="exportCSV()">📥 Export CSV</button>
+          <button class="lead-action-btn lead-action-primary" onclick="newCall()">📞 New Call</button>
+        </div>
+
+        <div class="crm-sheet">
+          <div class="crm-sheet-title">Spreadsheet Simulation</div>
+          <div class="crm-sheet-wrap">
+            <table class="crm-sheet-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Mobile</th>
+                  <th>Email</th>
+                  <th>Saved At</th>
+                </tr>
+              </thead>
+              <tbody id="crmTableBody"></tbody>
+            </table>
+          </div>
+          <div class="crm-empty" id="crmEmpty">No customer records saved yet.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom -->
+    <div class="bottom-bar">
+      <p>Powered by AI &middot; PrimeStart UAE &middot; Available 24/7</p>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Retell Web SDK -->
+  <script type="module">
+    import { RetellWebClient } from "https://esm.sh/retell-client-js-sdk@2.0.7";
+
+    let retellClient = null;
+    let isCallActive = false;
+    let timerInterval = null;
+    let callSeconds = 0;
+    let lastCallId = null;
+    let crmRecords = [];
+
+    const orb = document.getElementById("orb");
+    const soundWave = document.getElementById("soundWave");
+    const statusTitle = document.getElementById("statusTitle");
+    const statusSubtitle = document.getElementById("statusSubtitle");
+    const listeningLabel = document.getElementById("listeningLabel");
+    const callTimer = document.getElementById("callTimer");
+    const callBtn = document.getElementById("callBtn");
+    const callLabel = document.getElementById("callLabel");
+    const callSection = document.getElementById("callSection");
+    const spinner = document.getElementById("spinner");
+    const featuresGrid = document.getElementById("featuresGrid");
+    const leadSummary = document.getElementById("leadSummary");
+    const crmName = document.getElementById("crmName");
+    const crmMobile = document.getElementById("crmMobile");
+    const crmEmail = document.getElementById("crmEmail");
+    const crmTableBody = document.getElementById("crmTableBody");
+    const crmEmpty = document.getElementById("crmEmpty");
+    const toast = document.getElementById("toast");
+
+    function loadCRMRecords() {
+      try {
+        crmRecords = JSON.parse(localStorage.getItem("primestart_crm_records") || "[]");
+      } catch {
+        crmRecords = [];
+      }
+      renderCRMTable();
+    }
+
+    function saveCRMRecords() {
+      localStorage.setItem("primestart_crm_records", JSON.stringify(crmRecords));
+    }
+
+    function renderCRMTable() {
+      crmTableBody.innerHTML = "";
+
+      if (!crmRecords.length) {
+        crmEmpty.style.display = "block";
+        return;
+      }
+
+      crmEmpty.style.display = "none";
+
+      crmRecords.forEach((record) => {
+        const row = document.createElement("tr");
+
+        const nameCell = document.createElement("td");
+        nameCell.textContent = record.name;
+        row.appendChild(nameCell);
+
+        const mobileCell = document.createElement("td");
+        mobileCell.textContent = record.mobile;
+        row.appendChild(mobileCell);
+
+        const emailCell = document.createElement("td");
+        emailCell.textContent = record.email;
+        row.appendChild(emailCell);
+
+        const dateCell = document.createElement("td");
+        dateCell.textContent = record.savedAt;
+        row.appendChild(dateCell);
+
+        crmTableBody.appendChild(row);
+      });
+    }
+
+    function isValidEmail(email) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+
+    function isValidMobile(mobile) {
+      return /^[+]?\d[\d\s-]{7,17}$/.test(mobile);
+    }
+
+    function normalizeMobile(mobile) {
+      return mobile.replace(/\D/g, "");
+    }
+
+    function getDuplicateRecordIndex(name, mobile, email) {
+      const normalizedName = name.trim().toLowerCase();
+      const normalizedMobile = normalizeMobile(mobile);
+      const normalizedEmail = email.trim().toLowerCase();
+
+      return crmRecords.findIndex((record) => {
+        return (
+          record.name.trim().toLowerCase() === normalizedName &&
+          normalizeMobile(record.mobile) === normalizedMobile &&
+          record.email.trim().toLowerCase() === normalizedEmail
+        );
+      });
+    }
+
+    function hasCompleteValidCustomerData() {
+      const name = crmName.value.trim();
+      const mobile = crmMobile.value.trim();
+      const email = crmEmail.value.trim().toLowerCase();
+      return Boolean(name) && isValidMobile(mobile) && isValidEmail(email);
+    }
+
+    function showToast(message, type = "error") {
+      toast.textContent = message;
+      toast.className = `toast ${type} show`;
+      setTimeout(() => { toast.className = "toast"; }, 3500);
+    }
+
+    function updateTimer() {
+      callSeconds++;
+      const mins = Math.floor(callSeconds / 60).toString().padStart(2, "0");
+      const secs = (callSeconds % 60).toString().padStart(2, "0");
+      callTimer.textContent = `${mins}:${secs}`;
+    }
+
+    function setConnectingState() {
+      spinner.classList.add("active");
+      statusTitle.textContent = "Connecting...";
+      statusSubtitle.textContent = "Setting up your call with Aisha";
+      callBtn.style.display = "none";
+      callLabel.textContent = "";
+      featuresGrid.style.display = "none";
+      leadSummary.classList.remove("active");
+    }
+
+    function setActiveState() {
+      spinner.classList.remove("active");
+      orb.classList.add("active");
+      soundWave.classList.add("active");
+      listeningLabel.classList.add("active");
+      statusTitle.textContent = "Speaking with Aisha";
+      statusSubtitle.textContent = "AI Business Setup Advisor";
+      callTimer.classList.add("active");
+
+      // Show end call button only (no mute/speaker)
+      callBtn.style.display = "flex";
+      callBtn.className = "call-btn call-btn-end";
+      callBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.71-.29L.29 13.08a.956.956 0 0 1-.29-.7c0-.28.11-.53.29-.71C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 4.67c.18.18.29.43.29.71 0 .28-.11.53-.29.71l-2.48 2.48c-.18.18-.43.29-.71.29-.27 0-.52-.1-.7-.28-.79-.73-1.68-1.36-2.66-1.85a.993.993 0 0 1-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"/></svg>';
+      callLabel.textContent = "Tap to end call";
+      featuresGrid.style.display = "none";
+      leadSummary.classList.remove("active");
+
+      callSeconds = 0;
+      timerInterval = setInterval(updateTimer, 1000);
+    }
+
+    function setIdleState() {
+      spinner.classList.remove("active");
+      orb.classList.remove("active");
+      soundWave.classList.remove("active");
+      listeningLabel.classList.remove("active");
+      callTimer.classList.remove("active");
+
+      callBtn.style.display = "flex";
+      callBtn.className = "call-btn call-btn-start";
+      callBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 0 0-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/></svg>';
+      callLabel.textContent = "Tap to talk with Aisha";
+
+      if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+      isCallActive = false;
+    }
+
+    function setPostCallState(data) {
+      setIdleState();
+      statusTitle.textContent = "Call Ended";
+      statusSubtitle.textContent = "Review and save customer details";
+
+      // Hide features, show lead summary
+      featuresGrid.style.display = "none";
+      leadSummary.classList.add("active");
+
+      // Populate CRM form with extracted data (if available)
+      const ca = data.call_analysis || {};
+      crmName.value = (ca.caller_name || "").trim();
+      crmMobile.value = (ca.phone_whatsapp || data.from_number || "").trim();
+      crmEmail.value = (ca.email || "").trim();
+
+      if (hasCompleteValidCustomerData()) {
+        saveLeadRecord({ silent: true, skipFocus: true, auto: true });
+        statusSubtitle.textContent = "Customer details auto-saved to CRM";
+      } else {
+        showToast("Customer details ready to save", "success");
+      }
+    }
+
+    async function fetchCallAnalysis(callId) {
+      // Poll for call analysis (takes a few seconds after call ends)
+      let attempts = 0;
+      const maxAttempts = 10;
+
+      const poll = async () => {
+        attempts++;
+        try {
+          const response = await fetch(`/api/get-call/${callId}`);
+          const data = await response.json();
+
+          if (data.call_analysis && Object.keys(data.call_analysis).length > 0) {
+            setPostCallState(data);
+            return;
+          }
+
+          if (attempts < maxAttempts) {
+            setTimeout(poll, 3000);
+          } else {
+            // Show what we have even without full analysis
+            setPostCallState(data);
+          }
+        } catch (err) {
+          console.error("Poll error:", err);
+          if (attempts < maxAttempts) {
+            setTimeout(poll, 3000);
+          } else {
+            setPostCallState({ call_analysis: {} });
+          }
+        }
+      };
+
+      // Wait 5 seconds before first poll
+      setTimeout(poll, 5000);
+    }
+
+    async function startCall() {
+      setConnectingState();
+
+      try {
+        const response = await fetch("/api/create-web-call", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error?.message || "Failed to create call");
+        }
+
+        lastCallId = data.call_id;
+        retellClient = new RetellWebClient();
+
+        retellClient.on("call_started", () => {
+          isCallActive = true;
+          setActiveState();
+        });
+
+        retellClient.on("call_ended", () => {
+          isCallActive = false;
+          // Show loading state while fetching analysis
+          statusTitle.textContent = "Analyzing call...";
+          statusSubtitle.textContent = "Extracting lead data";
+          spinner.classList.add("active");
+          soundWave.classList.remove("active");
+          listeningLabel.classList.remove("active");
+          callTimer.classList.remove("active");
+          callBtn.style.display = "none";
+          callLabel.textContent = "";
+          if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+
+          if (lastCallId) {
+            fetchCallAnalysis(lastCallId);
+          } else {
+            setIdleState();
+          }
+        });
+
+        retellClient.on("error", (error) => {
+          console.error("Call error:", error);
+          showToast("Call error. Please try again.");
+          setIdleState();
+          featuresGrid.style.display = "grid";
+        });
+
+        await retellClient.startCall({
+          accessToken: data.access_token,
+        });
+      } catch (error) {
+        console.error("Start call error:", error);
+        showToast(error.message || "Could not connect. Please try again.");
+        setIdleState();
+        featuresGrid.style.display = "grid";
+      }
+    }
+
+    function endCall() {
+      if (retellClient) {
+        retellClient.stopCall();
+        retellClient = null;
+      }
+    }
+
+    function handleCall() {
+      if (isCallActive) {
+        endCall();
+      } else {
+        startCall();
+      }
+    }
+
+    function newCall() {
+      leadSummary.classList.remove("active");
+      statusTitle.textContent = "Hello! Meet Aisha";
+      statusSubtitle.innerHTML = "Your AI business setup advisor.<br>Ask anything about company formation in the UAE.";
+      featuresGrid.style.display = "grid";
+      spinner.classList.remove("active");
+      crmName.value = "";
+      crmMobile.value = "";
+      crmEmail.value = "";
+    }
+
+    function saveLeadRecord(options = {}) {
+      const { silent = false, skipFocus = false, auto = false } = options;
+      const name = crmName.value.trim();
+      const mobile = crmMobile.value.trim();
+      const email = crmEmail.value.trim().toLowerCase();
+
+      if (!name) {
+        if (!silent) {
+          showToast("Please enter customer name");
+        }
+        if (!skipFocus) {
+          crmName.focus();
+        }
+        return;
+      }
+
+      if (!mobile || !isValidMobile(mobile)) {
+        if (!silent) {
+          showToast("Please enter a valid mobile number");
+        }
+        if (!skipFocus) {
+          crmMobile.focus();
+        }
+        return;
+      }
+
+      if (!email || !isValidEmail(email)) {
+        if (!silent) {
+          showToast("Please enter a valid email ID");
+        }
+        if (!skipFocus) {
+          crmEmail.focus();
+        }
+        return;
+      }
+
+      const duplicateIndex = getDuplicateRecordIndex(name, mobile, email);
+      if (duplicateIndex !== -1) {
+        const existingRecord = crmRecords.splice(duplicateIndex, 1)[0];
+        crmRecords.unshift({
+          ...existingRecord,
+          name,
+          mobile,
+          email,
+          savedAt: new Date().toLocaleString(),
+        });
+        saveCRMRecords();
+        renderCRMTable();
+        if (!silent) {
+          showToast("Existing customer updated", "success");
+        }
+        return;
+      }
+
+      crmRecords.unshift({
+        name,
+        mobile,
+        email,
+        savedAt: new Date().toLocaleString(),
+      });
+
+      saveCRMRecords();
+      renderCRMTable();
+      if (!silent) {
+        showToast(auto ? "Customer record auto-saved" : "Customer record saved", "success");
+      }
+    }
+
+    function exportCSV() {
+      if (!crmRecords.length) {
+        showToast("No CRM records to export");
+        return;
+      }
+
+      const rows = [["Name", "Mobile", "Email", "Saved At"]];
+      crmRecords.forEach((record) => {
+        rows.push([record.name, record.mobile, record.email, record.savedAt]);
+      });
+
+      const csv = rows.map(r => r.map(c => `"${c.replace(/"/g, '""')}"`).join(",")).join("\n");
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `PrimeStart_Lead_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast("CSV exported", "success");
+    }
+
+    window.handleCall = handleCall;
+    window.newCall = newCall;
+    window.saveLeadRecord = saveLeadRecord;
+    window.exportCSV = exportCSV;
+
+    loadCRMRecords();
+  </script>
+</body>
+</html>

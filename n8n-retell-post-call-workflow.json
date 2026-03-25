@@ -1,0 +1,236 @@
+{
+  "name": "PrimeStart UAE - Retell Post-Call Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "retell-post-call",
+        "options": {
+          "responseMode": "lastNode",
+          "responseData": "allEntries"
+        }
+      },
+      "id": "webhook-trigger",
+      "name": "Retell Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "retell-post-call"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract post-call analysis data from Retell webhook payload\nconst body = $input.first().json.body || $input.first().json;\n\n// Retell sends call data in the webhook payload\nconst callData = {\n  event: body.event || 'unknown',\n  call_id: body.call_id || body.data?.call_id || 'N/A',\n  agent_id: body.agent_id || body.data?.agent_id || 'N/A',\n  call_status: body.call_status || body.data?.call_status || 'N/A',\n  start_timestamp: body.start_timestamp || body.data?.start_timestamp || null,\n  end_timestamp: body.end_timestamp || body.data?.end_timestamp || null,\n  duration_ms: body.duration_ms || body.data?.duration_ms || 0,\n  from_number: body.from_number || body.data?.from_number || 'N/A',\n  to_number: body.to_number || body.data?.to_number || 'N/A',\n  direction: body.direction || body.data?.direction || 'N/A',\n  transcript: body.transcript || body.data?.transcript || '',\n  recording_url: body.recording_url || body.data?.recording_url || '',\n};\n\n// Extract post-call analysis fields\nconst analysis = body.call_analysis || body.data?.call_analysis || {};\n\ncallData.caller_name = analysis.caller_name || 'Unknown';\ncallData.business_type = analysis.business_type || 'Unknown';\ncallData.budget_range = analysis.budget_range || 'Unknown';\ncallData.timeline = analysis.timeline || 'Unknown';\ncallData.email = analysis.email || '';\ncallData.phone_whatsapp = analysis.phone_whatsapp || '';\ncallData.lead_quality = analysis.lead_quality || 'Unknown';\ncallData.call_summary = analysis.call_summary || '';\ncallData.setup_type_interest = analysis.setup_type_interest || 'Unknown';\ncallData.services_inquired = analysis.services_inquired || 'Unknown';\n\n// Calculate duration in readable format\nconst durationSec = Math.round(callData.duration_ms / 1000);\nconst minutes = Math.floor(durationSec / 60);\nconst seconds = durationSec % 60;\ncallData.duration_readable = `${minutes}m ${seconds}s`;\n\n// Determine if this is a visa inquiry\ncallData.is_visa_inquiry = callData.services_inquired.toLowerCase().includes('visa');\n\nreturn [callData];"
+      },
+      "id": "parse-call-data",
+      "name": "Parse Retell Call Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "visa-check",
+              "leftValue": "={{ $json.is_visa_inquiry }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "visa-check-switch",
+      "name": "Is Visa Inquiry?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [720, 300]
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $env.SLACK_CHANNEL_ID || 'C0000000000' }}"
+        },
+        "text": "={{ '' }}",
+        "blocksUi": {
+          "blocksValues": [
+            {
+              "type": "header",
+              "textValue": "🚨 Visa Services Inquiry - Immediate Attention"
+            },
+            {
+              "type": "divider"
+            },
+            {
+              "type": "section",
+              "textValue": "*Caller:* {{ $json.caller_name }}\n*Phone:* {{ $json.from_number }}\n*WhatsApp:* {{ $json.phone_whatsapp || $json.from_number }}\n*Email:* {{ $json.email || 'Not provided' }}"
+            },
+            {
+              "type": "section",
+              "textValue": "*Business Type:* {{ $json.business_type }}\n*Services Asked:* {{ $json.services_inquired }}\n*Setup Interest:* {{ $json.setup_type_interest }}\n*Budget:* {{ $json.budget_range }}\n*Timeline:* {{ $json.timeline }}\n*Lead Quality:* {{ $json.lead_quality }}"
+            },
+            {
+              "type": "divider"
+            },
+            {
+              "type": "section",
+              "textValue": "*📝 Call Summary:*\n{{ $json.call_summary }}"
+            },
+            {
+              "type": "section",
+              "textValue": "*⏱ Duration:* {{ $json.duration_readable }} | *📞 Call ID:* {{ $json.call_id }}"
+            }
+          ]
+        },
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "id": "slack-notification",
+      "name": "Slack - Visa Alert",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [980, 180],
+      "credentials": {
+        "slackApi": {
+          "id": "SLACK_CREDENTIAL_ID",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $env.TEAM_EMAIL || 'team@primestart.ae' }}",
+        "subject": "=New Lead: {{ $json.caller_name }} - {{ $json.services_inquired }} | {{ $json.lead_quality }} Lead",
+        "emailType": "html",
+        "message": "=<div style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;\">\n  <div style=\"background: #1a365d; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;\">\n    <h1 style=\"margin: 0; font-size: 22px;\">PrimeStart UAE</h1>\n    <p style=\"margin: 5px 0 0; opacity: 0.9;\">New Lead from AI Voice Agent</p>\n  </div>\n  \n  <div style=\"border: 1px solid #e2e8f0; border-top: none; padding: 24px; border-radius: 0 0 8px 8px;\">\n    \n    <div style=\"background: {{ $json.lead_quality === 'Hot' ? '#fed7d7' : $json.lead_quality === 'Warm' ? '#fefcbf' : '#e2e8f0' }}; padding: 12px 16px; border-radius: 6px; margin-bottom: 20px; text-align: center;\">\n      <strong style=\"font-size: 16px;\">{{ $json.lead_quality }} Lead</strong>\n    </div>\n\n    <h2 style=\"color: #1a365d; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;\">Contact Details</h2>\n    <table style=\"width: 100%; border-collapse: collapse;\">\n      <tr><td style=\"padding: 6px 0; color: #718096; width: 140px;\">Name</td><td style=\"padding: 6px 0; font-weight: bold;\">{{ $json.caller_name }}</td></tr>\n      <tr><td style=\"padding: 6px 0; color: #718096;\">Phone</td><td style=\"padding: 6px 0;\">{{ $json.from_number }}</td></tr>\n      <tr><td style=\"padding: 6px 0; color: #718096;\">WhatsApp</td><td style=\"padding: 6px 0;\">{{ $json.phone_whatsapp || $json.from_number }}</td></tr>\n      <tr><td style=\"padding: 6px 0; color: #718096;\">Email</td><td style=\"padding: 6px 0;\">{{ $json.email || 'Not provided' }}</td></tr>\n    </table>\n\n    <h2 style=\"color: #1a365d; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 20px;\">Inquiry Details</h2>\n    <table style=\"width: 100%; border-collapse: collapse;\">\n      <tr><td style=\"padding: 6px 0; color: #718096; width: 140px;\">Services</td><td style=\"padding: 6px 0; font-weight: bold;\">{{ $json.services_inquired }}</td></tr>\n      <tr><td style=\"padding: 6px 0; color: #718096;\">Business Type</td><td style=\"padding: 6px 0;\">{{ $json.business_type }}</td></tr>\n      <tr><td style=\"padding: 6px 0; color: #718096;\">Setup Interest</td><td style=\"padding: 6px 0;\">{{ $json.setup_type_interest }}</td></tr>\n      <tr><td style=\"padding: 6px 0; color: #718096;\">Budget Range</td><td style=\"padding: 6px 0;\">{{ $json.budget_range }}</td></tr>\n      <tr><td style=\"padding: 6px 0; color: #718096;\">Timeline</td><td style=\"padding: 6px 0;\">{{ $json.timeline }}</td></tr>\n    </table>\n\n    <h2 style=\"color: #1a365d; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 20px;\">Call Summary</h2>\n    <p style=\"color: #4a5568; line-height: 1.6; background: #f7fafc; padding: 12px; border-radius: 6px;\">{{ $json.call_summary }}</p>\n\n    <div style=\"margin-top: 16px; padding: 10px; background: #f7fafc; border-radius: 6px; font-size: 13px; color: #718096;\">\n      <strong>Call Duration:</strong> {{ $json.duration_readable }} &nbsp;|&nbsp; <strong>Call ID:</strong> {{ $json.call_id }}\n    </div>\n\n    <div style=\"margin-top: 24px; text-align: center;\">\n      <p style=\"color: #a0aec0; font-size: 12px;\">Automated by PrimeStart UAE AI Voice Agent</p>\n    </div>\n  </div>\n</div>",
+        "options": {}
+      },
+      "id": "gmail-notification",
+      "name": "Gmail - Lead Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [980, 420],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "GMAIL_CREDENTIAL_ID",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ status: 'ok', message: 'Slack notification sent for visa inquiry', call_id: $json.call_id }) }}"
+      },
+      "id": "respond-slack",
+      "name": "Respond OK (Slack)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1240, 180]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ status: 'ok', message: 'Gmail notification sent', call_id: $json.call_id }) }}"
+      },
+      "id": "respond-gmail",
+      "name": "Respond OK (Gmail)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1240, 420]
+    }
+  ],
+  "connections": {
+    "Retell Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Parse Retell Call Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Retell Call Data": {
+      "main": [
+        [
+          {
+            "node": "Is Visa Inquiry?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Visa Inquiry?": {
+      "main": [
+        [
+          {
+            "node": "Slack - Visa Alert",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Gmail - Lead Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slack - Visa Alert": {
+      "main": [
+        [
+          {
+            "node": "Respond OK (Slack)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail - Lead Email": {
+      "main": [
+        [
+          {
+            "node": "Respond OK (Gmail)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "name": "PrimeStart UAE"
+    },
+    {
+      "name": "Retell AI"
+    },
+    {
+      "name": "Lead Automation"
+    }
+  ]
+}

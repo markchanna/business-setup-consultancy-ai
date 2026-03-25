@@ -1,0 +1,40 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:docs.retellai.com)",
+      "WebSearch",
+      "Bash(curl -s -X POST https://api.retellai.com/create-retell-llm -H \"Authorization: Bearer key_a8beed446e1715300b3e0b9ad9f1\" -H \"Content-Type: application/json\" -d '{:*)",
+      "Bash(curl -s -X POST https://api.retellai.com/create-agent -H \"Authorization: Bearer key_a8beed446e1715300b3e0b9ad9f1\" -H \"Content-Type: application/json\" -d '{:*)",
+      "Bash(curl -s -X GET https://api.retellai.com/list-voices -H \"Authorization: Bearer key_a8beed446e1715300b3e0b9ad9f1\")",
+      "Bash(curl -s -X PATCH https://api.retellai.com/update-agent/agent_9593aca26ddf9667482a27a1dd -H \"Authorization: Bearer key_a8beed446e1715300b3e0b9ad9f1\" -H \"Content-Type: application/json\" -d '{:*)",
+      "Bash(curl -s -X PATCH https://api.retellai.com/update-retell-llm/llm_02079d34092acafab8152dce833f -H \"Authorization: Bearer key_a8beed446e1715300b3e0b9ad9f1\" -H \"Content-Type: application/json\" -d '{:*)",
+      "Bash(curl -s -X GET \"https://eu1.make.com/api/v2/organizations\" -H \"Authorization: Token 5414d9e4-1f44-4e7c-94f7-9db1820b914d\" -H \"Content-Type: application/json\")",
+      "Bash(curl -s -X GET \"https://eu1.make.com/api/v2/teams?organizationId=7029940\" -H \"Authorization: Token 5414d9e4-1f44-4e7c-94f7-9db1820b914d\" -H \"Content-Type: application/json\")",
+      "Bash(npm install:*)",
+      "Bash(node server.js)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(taskkill //F //IM \"node.exe\")",
+      "Bash(netstat -ano)",
+      "Bash(taskkill //PID 11124 //F)",
+      "Bash(curl -s -X POST https://api.retellai.com/v2/create-web-call -H \"Authorization: Bearer key_a8beed446e1715300b3e0b9ad9f1\" -H \"Content-Type: application/json\" -d '{\"\"agent_id\"\": \"\"agent_9593aca26ddf9667482a27a1dd\"\"}')",
+      "Bash(curl -s \"https://registry.npmjs.org/retell-client-js-sdk/latest\")",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(d.get\\(''''version'''',''''?''''\\)\\); print\\(d.get\\(''''main'''',''''?''''\\)\\)\")",
+      "Bash(curl -s https://registry.npmjs.org/retell-client-js-sdk/latest)",
+      "Bash(curl -sI \"https://cdn.jsdelivr.net/npm/retell-client-js-sdk@2.0.7/dist/index.js\")",
+      "Bash(curl -s \"https://cdn.jsdelivr.net/npm/retell-client-js-sdk@2.0.7/dist/index.js\")",
+      "Bash(curl -s -X GET \"https://api.retellai.com/v2/get-agent/agent_9593aca26ddf9667482a27a1dd\" -H \"Authorization: Bearer key_a8beed446e1715300b3e0b9ad9f1\")",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d, indent=2\\)\\)\")",
+      "Bash(curl -s -X GET \"https://api.retellai.com/get-agent/agent_9593aca26ddf9667482a27a1dd\" -H \"Authorization: Bearer key_a8beed446e1715300b3e0b9ad9f1\")",
+      "Bash(curl -s -X GET \"https://api.retellai.com/get-retell-llm/llm_02079d34092acafab8152dce833f\" -H \"Authorization: Bearer key_a8beed446e1715300b3e0b9ad9f1\")",
+      "Bash(node update-prompt.js)",
+      "WebFetch(domain:www.retellai.com)",
+      "WebFetch(domain:omnidim.io)",
+      "WebFetch(domain:omnidimension.substack.com)",
+      "WebFetch(domain:cb-milpitas.omnidim.io)",
+      "WebFetch(domain:www.indiehackers.com)",
+      "WebFetch(domain:exotel.com)",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(''''Interruption sensitivity:'''', d.get\\(''''interruption_sensitivity''''\\)\\); print\\(''''Responsiveness:'''', d.get\\(''''responsiveness''''\\)\\); print\\(''''Backchannel:'''', d.get\\(''''enable_backchannel''''\\)\\); print\\(''''Backchannel freq:'''', d.get\\(''''backchannel_frequency''''\\)\\)\")",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(''''Begin message:'''', d.get\\(''''begin_message''''\\)\\)\")"
+    ]
+  }
+}
