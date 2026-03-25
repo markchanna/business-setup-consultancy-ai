@@ -95,12 +95,12 @@
 
     /* === Main Content === */
     .main-content {
-      flex: 1;
+      flex: 0 0 auto;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
-      padding: clamp(14px, 4vh, 42px) 20px 10px;
+      padding: clamp(12px, 3vh, 28px) 20px 8px;
       position: relative;
     }
 
@@ -169,7 +169,7 @@
     @keyframes sound-wave-anim { 0%, 100% { height: 6px; opacity: 0.35; } 50% { height: 26px; opacity: 1; } }
 
     /* === Status Area === */
-    .status-area { text-align: center; margin-bottom: 16px; min-height: 50px; }
+    .status-area { text-align: center; margin-bottom: 8px; min-height: 50px; }
     .status-title {
       font-family: 'Manrope', sans-serif; font-size: 24px; font-weight: 700;
       letter-spacing: -0.5px; color: var(--on-surface); margin-bottom: 6px;
@@ -200,7 +200,7 @@
     .call-section {
       padding: 0 24px 12px; display: flex; flex-direction: column;
       align-items: center; gap: 8px;
-      margin-top: -2px;
+      margin-top: 0;
     }
     .call-btn {
       width: 64px; height: 64px; border-radius: 9999px; border: none; cursor: pointer;
@@ -353,6 +353,12 @@
       color: var(--outline-variant);
     }
 
+    .post-call-mode .main-content,
+    .post-call-mode .call-section,
+    .post-call-mode .features {
+      display: none;
+    }
+
     /* === Bottom Bar === */
     .bottom-bar { padding: 10px 24px; text-align: center; flex-shrink: 0; }
     .bottom-bar p { font-size: 10px; color: var(--outline-variant); letter-spacing: 0.2px; }
@@ -400,6 +406,7 @@
       .lead-card { padding: 16px; border-radius: 18px; }
       .status-title { font-size: 20px; }
       .status-subtitle { font-size: 13px; }
+      .lead-actions { flex-direction: column; }
     }
     @media (max-height: 500px) {
       .orb { width: 80px; height: 80px; }
@@ -677,6 +684,7 @@
     }
 
     function setConnectingState() {
+      document.body.classList.remove("post-call-mode");
       spinner.classList.add("active");
       statusTitle.textContent = "Connecting...";
       statusSubtitle.textContent = "Setting up your call with Aisha";
@@ -687,6 +695,7 @@
     }
 
     function setActiveState() {
+      document.body.classList.remove("post-call-mode");
       spinner.classList.remove("active");
       orb.classList.add("active");
       soundWave.classList.add("active");
@@ -708,6 +717,7 @@
     }
 
     function setIdleState() {
+      document.body.classList.remove("post-call-mode");
       spinner.classList.remove("active");
       orb.classList.remove("active");
       soundWave.classList.remove("active");
@@ -725,11 +735,11 @@
 
     function setPostCallState(data) {
       setIdleState();
+      document.body.classList.add("post-call-mode");
       statusTitle.textContent = "Call Ended";
       statusSubtitle.textContent = "Review and save customer details";
 
-      // Hide features, show lead summary
-      featuresGrid.style.display = "none";
+      // Show CRM summary as primary post-call view
       leadSummary.classList.add("active");
 
       // Populate CRM form with extracted data (if available)
@@ -859,6 +869,7 @@
     }
 
     function newCall() {
+      document.body.classList.remove("post-call-mode");
       leadSummary.classList.remove("active");
       statusTitle.textContent = "Hello! Meet Aisha";
       statusSubtitle.innerHTML = "Your AI business setup advisor.<br>Ask anything about company formation in the UAE.";
