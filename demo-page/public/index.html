@@ -67,6 +67,8 @@
       padding-bottom: var(--safe-bottom);
       position: relative;
       z-index: 1;
+      max-width: 430px;
+      margin: 0 auto;
     }
 
     /* === Header === */
@@ -102,12 +104,12 @@
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
-      padding: clamp(12px, 3vh, 28px) 20px 8px;
+      padding: clamp(12px, 3vh, 26px) 20px 6px;
       position: relative;
     }
 
     /* === The Orb === */
-    .orb-container { position: relative; margin-bottom: 20px; }
+    .orb-container { position: relative; margin-bottom: 14px; }
     .orb {
       width: 150px; height: 150px; border-radius: 50%; position: relative;
       display: flex; align-items: center; justify-content: center;
@@ -171,7 +173,7 @@
     @keyframes sound-wave-anim { 0%, 100% { height: 6px; opacity: 0.35; } 50% { height: 26px; opacity: 1; } }
 
     /* === Status Area === */
-    .status-area { text-align: center; margin-bottom: 8px; min-height: 50px; }
+    .status-area { text-align: center; margin-bottom: 12px; min-height: 50px; }
     .status-title {
       font-family: 'Manrope', sans-serif; font-size: 24px; font-weight: 700;
       letter-spacing: -0.5px; color: var(--on-surface); margin-bottom: 6px;
@@ -200,9 +202,10 @@
 
     /* === Call Section (ABOVE features) === */
     .call-section {
-      padding: 0 24px 12px; display: flex; flex-direction: column;
+      padding: 0 20px 10px; display: flex; flex-direction: column;
       align-items: center; gap: 8px;
       margin-top: 0;
+      margin-bottom: 14px;
     }
     .call-btn {
       width: 64px; height: 64px; border-radius: 9999px; border: none; cursor: pointer;
@@ -224,7 +227,7 @@
 
     /* === Features Grid (BELOW call button) === */
     .features {
-      padding: 0 20px 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+      padding: 0 20px 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
     }
     .feature-card {
       background: rgba(255,255,255,0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
@@ -244,7 +247,7 @@
 
     /* === CRM Capture (after call) === */
     .lead-summary {
-      display: none; padding: 0 20px 16px; width: 100%;
+      display: none; padding: 0 20px 16px; width: 100%; margin-top: 4px;
       animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .lead-summary.active { display: block; }
@@ -298,12 +301,12 @@
       border-color: rgba(0,85,215,0.45);
       box-shadow: 0 0 0 3px rgba(0,85,215,0.08);
     }
-    .lead-actions { display: flex; gap: 8px; margin-top: 12px; }
+    .lead-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
     .lead-action-btn {
       flex: 1; padding: 12px; border-radius: 14px; border: none; cursor: pointer;
       font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600;
       display: flex; align-items: center; justify-content: center; gap: 6px;
-      transition: all 0.2s ease;
+      transition: all 0.2s ease; min-width: 120px;
     }
     .lead-action-btn:active { transform: scale(0.97); }
     .lead-action-primary {
@@ -362,7 +365,7 @@
     }
 
     /* === Bottom Bar === */
-    .bottom-bar { padding: 10px 24px; text-align: center; flex-shrink: 0; }
+    .bottom-bar { padding: 10px 24px; text-align: center; flex-shrink: 0; margin-top: auto; }
     .bottom-bar p { font-size: 10px; color: var(--outline-variant); letter-spacing: 0.2px; }
 
     /* === Toast === */
@@ -391,6 +394,7 @@
       .features { gap: 8px; }
       .feature-card { padding: 10px; }
       .call-section { padding-bottom: 8px; }
+      .call-section { margin-bottom: 10px; }
     }
     @media (max-height: 600px) {
       .features { display: none; }
@@ -404,7 +408,7 @@
       .main-content { padding-left: 14px; padding-right: 14px; }
       .features { padding-left: 14px; padding-right: 14px; }
       .lead-summary { padding-left: 14px; padding-right: 14px; }
-      .call-section { padding-left: 14px; padding-right: 14px; }
+      .call-section { padding-left: 14px; padding-right: 14px; padding-bottom: 10px; margin-bottom: 10px; }
       .lead-card { padding: 16px; border-radius: 18px; }
       .status-title { font-size: 20px; }
       .status-subtitle { font-size: 13px; }
