@@ -1,0 +1,9 @@
+{
+  "name": "business-setup-consultancy-ai-root",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "build": "npm --prefix demo-page install",
+    "start": "npm --prefix demo-page start"
+  }
+}
